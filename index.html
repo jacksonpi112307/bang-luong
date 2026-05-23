@@ -4,280 +4,231 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Quản Lý Lương Pro</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Bảng Lương Pro</title>
 <style>
-:root {
-    --primary: #1a1a1a; --bg: #f5f5f0; --card: #fff; --border: #e0ddd6;
-    --green: #3B6D11; --amber: #8a5c00; --blue: #185FA5; --red: #A32D2D;
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a}
+:root{
+  --green:#3B6D11;--green-bg:#EAF3DE;--green-bd:#C0DD97;
+  --amber:#8a5c00;--amber-bg:#FFF8E6;--amber-bd:#F5C842;
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-bd:#B5D4F4;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-bd:#F7C1C1;
+  --surface:#fff;--border:#e0ddd6;--muted:#888;--radius:12px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--primary); line-height: 1.4; }
-.app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
-.content { flex: 1; padding: 16px; padding-bottom: 80px; }
-.section { display: none; } .section.active { display: block; }
+.app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:#f5f5f0}
+.content{flex:1;overflow-y:auto;padding:16px;padding-bottom:100px}
+.section{display:none}.section.active{display:block}
 
-/* Tabs */
-.tab-bar { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: var(--card); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom); z-index: 100; }
-.tab { flex: 1; padding: 12px; border: none; background: none; font-size: 11px; color: #888; cursor: pointer; }
-.tab.active { color: var(--primary); font-weight: bold; }
+/* Tab Bar */
+.tab-bar{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:6px 0 env(safe-area-inset-bottom);position:fixed;bottom:0;width:100%;max-width:480px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;color:var(--muted);font-size:10px;font-weight:500}
+.tab.active{color:#1a1a1a}
+.tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+/* Header & Cards */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.page-title{font-size:22px;font-weight:700}
+.card{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:12px;letter-spacing:.05em}
 
 /* Calendar */
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.day { background: var(--card); border: 1px solid var(--border); border-radius: 8px; min-height: 55px; display: flex; flex-direction: column; align-items: center; padding: 4px; cursor: pointer; }
-.day-n { font-size: 13px; font-weight: bold; }
-.tags { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; margin-top: 2px; }
-.tag { font-size: 8px; padding: 1px 3px; border-radius: 3px; color: #fff; }
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-head{font-size:10px;font-weight:600;text-align:center;color:var(--muted);padding:4px 0}
+.day{min-height:50px;border-radius:8px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface);position:relative}
+.day-n{font-size:13px;font-weight:600}
+.day-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:2px}
+.tag-dot{width:6px;height:6px;border-radius:50%}
 
-/* Sheet */
-.sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 200; align-items: flex-end; }
-.sheet-bg.open { display: flex; }
-.sheet { background: var(--card); width: 100%; border-radius: 20px 20px 0 0; padding: 20px; max-height: 85vh; overflow-y: auto; }
-.status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
-.sbtn { padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; font-weight: 600; }
-.sbtn.active { border-color: var(--primary); background: #f0f0f0; }
-.hour-input-group { background: #f9f9f9; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
-.hour-input-group input { width: 60px; padding: 5px; text-align: center; border: 1px solid var(--border); border-radius: 5px; }
+/* Bottom Sheet */
+.sheet-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end}
+.sheet-bg.open{display:flex}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
+.sheet-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 15px}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.sbtn{padding:12px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-weight:600;color:#555}
+.sbtn.active{border-color:#1a1a1a;background:#f0f0f0;color:#1a1a1a}
 
-/* Settings */
-.card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
-.card-title { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 10px; font-weight: bold; }
-input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; margin-top: 5px; }
-.wt-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+/* Inputs */
+.hour-row{display:flex;align-items:center;justify-content:space-between;padding:10px;background:#f9f9f7;border-radius:8px;margin-bottom:8px}
+.hour-row input{width:70px;padding:6px;text-align:center;border:1px solid var(--border);border-radius:6px}
+input[type=number], input[type=text], textarea { width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:14px; margin-top:5px; background: #fff; }
+
+/* Salary Summary */
+.total-box{background:var(--green-bg);border:1px solid var(--green-bd);padding:15px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
+.total-val{font-size:22px;font-weight:800;color:var(--green)}
 </style>
 </head>
 <body>
 
 <div class="app">
-    <div class="content">
-        <div id="sec-cong" class="section active">
-            <h2 style="margin-bottom:15px">Tháng <span id="month-label"></span></h2>
-            <div class="cal-grid" id="calendar"></div>
-            <div id="summary-card" class="card" style="margin-top:20px"></div>
+  <div class="content">
+    <div id="sec-cong" class="section active">
+      <div class="page-header">
+        <div class="page-title">Tháng <span id="month-label"></span></div>
+        <div style="display:flex; gap:10px">
+          <button onclick="changeMonth(-1)" style="background:none; border:none; font-size:20px">‹</button>
+          <button onclick="changeMonth(1)" style="background:none; border:none; font-size:20px">›</button>
         </div>
-
-        <div id="sec-luong" class="section">
-            <h2 style="margin-bottom:15px">Bảng tính lương</h2>
-            <div id="salary-detail" class="card"></div>
-        </div>
-
-        <div id="sec-settings" class="section">
-            <h2 style="margin-bottom:15px">Cài đặt biến & Công thức</h2>
-            <div class="card">
-                <div class="card-title">Biến hệ thống</div>
-                <label>Lương cơ bản (đ/tháng)</label>
-                <input type="number" id="base-salary" oninput="saveCfg()">
-                <label style="margin-top:10px; display:block">Số ngày công chuẩn (VD: 26)</label>
-                <input type="number" id="std-days" oninput="saveCfg()">
-            </div>
-
-            <div class="card">
-                <div class="card-title">Loại ngày công (Tự tùy chỉnh)</div>
-                <div id="wt-list"></div>
-                <button onclick="addWT()" style="width:100%; padding:10px; margin-top:10px; border-radius:8px; border:1px dashed #888; background:none">+ Thêm loại công mới</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Công thức Excel (Dùng các biến trên)</div>
-                <textarea id="formula" rows="4" oninput="saveCfg()" placeholder="Ví dụ: (baseSalary / stdDays) * workDays + (baseSalary / stdDays / 8) * otHours * 1.5"></textarea>
-                <p style="font-size:11px; color:#888; margin-top:5px">Sử dụng: <b>baseSalary, stdDays</b> và các <b>Mã biến</b> của loại công.</p>
-            </div>
-        </div>
+      </div>
+      <div class="card">
+        <div class="cal-grid" id="cal-heads"></div>
+        <div class="cal-grid" id="calendar"></div>
+      </div>
+      <div id="summary-card"></div>
     </div>
 
-    <div class="tab-bar">
-        <button class="tab active" onclick="showSec('cong')">Chấm công</button>
-        <button class="tab" onclick="showSec('luong')">Tính lương</button>
-        <button class="tab" onclick="showSec('settings')">Cài đặt</button>
+    <div id="sec-luong" class="section">
+      <div class="page-header"><div class="page-title">Tính lương</div></div>
+      <div class="card" id="salary-detail"></div>
     </div>
+
+    <div id="sec-settings" class="section">
+      <div class="page-header"><div class="page-title">Cài đặt</div></div>
+      <div class="card">
+        <div class="card-title">Biến hệ thống</div>
+        <label style="font-size:12px; color:#666">Lương cơ bản (đ/tháng)</label>
+        <input type="number" id="base-salary" oninput="saveCfg()">
+        <label style="font-size:12px; color:#666; margin-top:10px; display:block">Số ngày công tiêu chuẩn</label>
+        <input type="number" id="std-days" oninput="saveCfg()">
+      </div>
+      <div class="card">
+        <div class="card-title">Loại công & Mã biến</div>
+        <div id="wt-list"></div>
+        <button onclick="addWT()" style="width:100%; padding:10px; margin-top:10px; border:1px dashed #ccc; border-radius:8px; background:none; color:#888">+ Thêm loại công</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Công thức tính (Kiểu Excel)</div>
+        <textarea id="formula" rows="3" oninput="saveCfg()"></textarea>
+        <p style="font-size:10px; color:#999; margin-top:8px">Sử dụng: <b>baseSalary, stdDays</b> và các mã biến của bạn.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('cong', this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Chấm công
+    </button>
+    <button class="tab" onclick="switchTab('luong', this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9h1a2 2 0 1 1 0 4H9v2h5M11 7v2M11 15v2"/></svg>Lương
+    </button>
+    <button class="tab" onclick="switchTab('settings', this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Cài đặt
+    </button>
+  </div>
 </div>
 
 <div class="sheet-bg" id="sheet-bg" onclick="if(event.target==this) closeSheet()">
-    <div class="sheet">
-        <h3 id="sheet-date">Ngày</h3>
-        <p style="font-size:12px; color:#888">Bấm để chọn/hủy. Có thể chọn nhiều loại.</p>
-        <div class="status-grid" id="status-grid"></div>
-        <div id="hour-inputs"></div>
-        <button onclick="closeSheet()" style="width:100%; padding:15px; background:#1a1a1a; color:#fff; border:none; border-radius:12px; font-weight:bold; margin-top:10px">XONG</button>
-    </div>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="sheet-date">Ngày 1</h3>
+    <div class="status-grid" id="status-grid"></div>
+    <div id="hour-inputs"></div>
+    <button onclick="closeSheet()" style="width:100%; padding:15px; background:#1a1a1a; color:#fff; border:none; border-radius:12px; font-weight:700; margin-top:15px">Xong</button>
+  </div>
 </div>
 
 <script>
-let Y = new Date().getFullYear(), M = new Date().getMonth();
-let att = JSON.parse(localStorage.getItem('att_v2') || '{}');
-let cfg = JSON.parse(localStorage.getItem('cfg_v2') || JSON.stringify({
-    baseSalary: 10000000,
-    stdDays: 26,
-    formula: "(baseSalary / stdDays) * workDays + (baseSalary / stdDays / 8) * otHours * 1.5",
-    wt: [
-        { id: 'w1', name: 'Ngày thường', var: 'workDays', color: '#3B6D11' },
-        { id: 'w2', name: 'Tăng ca', var: 'otHours', color: '#8a5c00' },
-        { id: 'w3', name: 'Chủ Nhật', var: 'sunHours', color: '#185FA5' }
-    ]
+let Y=new Date().getFullYear(), M=new Date().getMonth(), curDay=null;
+const WDAYS=['CN','T2','T3','T4','T5','T6','T7'];
+const COLORS=['var(--green)','var(--amber)','var(--blue)','var(--red)','#999'];
+
+let cfg = JSON.parse(localStorage.getItem('slr_cfg_v3') || JSON.stringify({
+  baseSalary: 10000000, stdDays: 26,
+  formula: "(baseSalary / stdDays) * workDays + (baseSalary / stdDays / 8) * otHours * 1.5",
+  wt: [
+    { id: 'w1', name: 'Ngày thường', var: 'workDays', ci: 0 },
+    { id: 'w2', name: 'Tăng ca', var: 'otHours', ci: 1 },
+    { id: 'w3', name: 'Chủ Nhật', var: 'sunHours', ci: 2 }
+  ]
 }));
+let att = JSON.parse(localStorage.getItem('slr_att_v3') || '{}');
 
-let curDay = null;
-
-function saveCfg() {
-    cfg.baseSalary = parseFloat(document.getElementById('base-salary').value) || 0;
-    cfg.stdDays = parseFloat(document.getElementById('std-days').value) || 1;
-    cfg.formula = document.getElementById('formula').value;
-    localStorage.setItem('cfg_v2', JSON.stringify(cfg));
-    renderAll();
+function saveCfg(){
+  cfg.baseSalary = parseFloat(document.getElementById('base-salary').value)||0;
+  cfg.stdDays = parseFloat(document.getElementById('std-days').value)||1;
+  cfg.formula = document.getElementById('formula').value;
+  localStorage.setItem('slr_cfg_v3', JSON.stringify(cfg));
+  renderAll();
 }
 
-function renderAll() {
-    renderCalendar();
-    renderSummary();
-    renderWTList();
+function renderAll(){
+  renderCalendar(); renderSummary(); renderWTList();
 }
 
-function renderCalendar() {
-    document.getElementById('month-label').innerText = (M + 1) + "/" + Y;
-    const daysInMonth = new Date(Y, M + 1, 0).getDate();
-    const cal = document.getElementById('calendar');
-    cal.innerHTML = '';
-
-    for (let d = 1; d <= daysInMonth; d++) {
-        const key = `${Y}-${M}-${d}`;
-        const dayData = att[key] || {};
-        let tagsHtml = '';
-        
-        Object.keys(dayData).forEach(wtId => {
-            const type = cfg.wt.find(t => t.id === wtId);
-            if(type) tagsHtml += `<span class="tag" style="background:${type.color}">${dayData[wtId]}</span>`;
-        });
-
-        cal.innerHTML += `
-            <div class="day" onclick="openDay(${d})">
-                <span class="day-n">${d}</span>
-                <div class="tags">${tagsHtml}</div>
-            </div>`;
-    }
-}
-
-function openDay(d) {
-    curDay = d;
-    const key = `${Y}-${M}-${d}`;
-    document.getElementById('sheet-date').innerText = `Ngày ${d} tháng ${M+1}`;
-    document.getElementById('sheet-bg').classList.add('open');
-    renderSheetContent();
-}
-
-function renderSheetContent() {
-    const key = `${Y}-${M}-${curDay}`;
-    const dayData = att[key] || {};
-    
-    const grid = document.getElementById('status-grid');
-    grid.innerHTML = cfg.wt.map(type => `
-        <button class="sbtn ${dayData[type.id] ? 'active' : ''}" onclick="toggleWT('${type.id}')">
-            ${type.name}
-        </button>
-    `).join('');
-
-    const hours = document.getElementById('hour-inputs');
-    hours.innerHTML = Object.keys(dayData).map(wtId => {
-        const type = cfg.wt.find(t => t.id === wtId);
-        return `
-            <div class="hour-input-group">
-                <span>Số giờ/công cho <b>${type.name}</b></span>
-                <input type="number" step="0.1" value="${dayData[wtId]}" oninput="updateHour('${wtId}', this.value)">
-            </div>
-        `;
+function renderCalendar(){
+  document.getElementById('month-label').innerText = (M+1)+"/"+Y;
+  document.getElementById('cal-heads').innerHTML = WDAYS.map(d=>`<div class="cal-head">${d}</div>`).join('');
+  const total = new Date(Y, M+1, 0).getDate(), first = new Date(Y, M, 1).getDay();
+  const cal = document.getElementById('calendar'); cal.innerHTML = '';
+  for(let i=0; i<first; i++) cal.innerHTML += `<div style="border:none"></div>`;
+  for(let d=1; d<=total; d++){
+    const dayData = att[`${Y}-${M}-${d}`] || {};
+    let dots = Object.keys(dayData).map(id=>{
+      const t = cfg.wt.find(x=>x.id===id); return `<div class="tag-dot" style="background:${COLORS[t?t.ci:4]}"></div>`;
     }).join('');
+    cal.innerHTML += `<div class="day" onclick="openDay(${d})"><span class="day-n">${d}</span><div class="day-tags">${dots}</div></div>`;
+  }
 }
 
-function toggleWT(id) {
-    const key = `${Y}-${M}-${curDay}`;
-    if (!att[key]) att[key] = {};
-    
-    if (att[key][id]) {
-        delete att[key][id];
-    } else {
-        att[key][id] = (id === 'w1') ? 1 : 4; // Mặc định 1 công hoặc 4h
-    }
-    
-    localStorage.setItem('att_v2', JSON.stringify(att));
-    renderSheetContent();
-    renderAll();
+function openDay(d){
+  curDay = d; document.getElementById('sheet-date').innerText = `Ngày ${d}/${M+1}`;
+  document.getElementById('sheet-bg').classList.add('open'); renderSheet();
 }
 
-function updateHour(id, val) {
-    const key = `${Y}-${M}-${curDay}`;
-    att[key][id] = parseFloat(val) || 0;
-    localStorage.setItem('att_v2', JSON.stringify(att));
-    renderAll();
+function renderSheet(){
+  const dayData = att[`${Y}-${M}-${curDay}`] || {};
+  document.getElementById('status-grid').innerHTML = cfg.wt.map(t=>`
+    <button class="sbtn ${dayData[t.id]?'active':''}" onclick="toggleWT('${t.id}')">${t.name}</button>
+  `).join('');
+  document.getElementById('hour-inputs').innerHTML = Object.keys(dayData).map(id=>{
+    const t = cfg.wt.find(x=>x.id===id);
+    return `<div class="hour-row"><span>Giờ/Công cho ${t.name}</span><input type="number" step="0.1" value="${dayData[id]}" oninput="updateH('${id}',this.value)"></div>`;
+  }).join('');
 }
 
-function closeSheet() { document.getElementById('sheet-bg').classList.remove('open'); }
-
-function renderSummary() {
-    const totals = {};
-    cfg.wt.forEach(t => totals[t.var] = 0);
-
-    Object.values(att).forEach(day => {
-        Object.entries(day).forEach(([wtId, val]) => {
-            const type = cfg.wt.find(t => t.id === wtId);
-            if (type) totals[type.var] += val;
-        });
-    });
-
-    // Tính lương bằng Eval (Excel-like)
-    let finalSalary = 0;
-    try {
-        let f = cfg.formula;
-        f = f.replace(/baseSalary/g, cfg.baseSalary);
-        f = f.replace(/stdDays/g, cfg.stdDays);
-        cfg.wt.forEach(t => {
-            f = f.replace(new RegExp(t.var, 'g'), totals[t.var] || 0);
-        });
-        finalSalary = eval(f);
-    } catch(e) { finalSalary = 0; }
-
-    document.getElementById('summary-card').innerHTML = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-            ${cfg.wt.map(t => `<div>${t.name}: <b>${totals[t.var]}</b></div>`).join('')}
-        </div>
-        <div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee">
-            Dự kiến nhận: <b style="color:var(--green); font-size:20px">${Math.round(finalSalary).toLocaleString()}đ</b>
-        </div>
-    `;
-    
-    document.getElementById('salary-detail').innerText = `Lương thực nhận: ${Math.round(finalSalary).toLocaleString()}đ`;
+function toggleWT(id){
+  const key=`${Y}-${M}-${curDay}`; if(!att[key]) att[key]={};
+  if(att[key][id]) delete att[key][id]; else att[key][id]=(id==='w1'?1:4);
+  localStorage.setItem('slr_att_v3', JSON.stringify(att)); renderSheet(); renderAll();
 }
 
-function renderWTList() {
-    const list = document.getElementById('wt-list');
-    list.innerHTML = cfg.wt.map((t, index) => `
-        <div class="wt-item">
-            <input type="text" value="${t.name}" oninput="cfg.wt[${index}].name=this.value;saveCfg()" style="width:45%">
-            <input type="text" value="${t.var}" oninput="cfg.wt[${index}].var=this.value;saveCfg()" style="width:35%" placeholder="Mã biến">
-            <button onclick="removeWT(${index})" style="width:15%; color:red; border:none; background:none">X</button>
-        </div>
-    `).join('');
-    
-    document.getElementById('base-salary').value = cfg.baseSalary;
-    document.getElementById('std-days').value = cfg.stdDays;
-    document.getElementById('formula').value = cfg.formula;
+function updateH(id,v){ att[`${Y}-${M}-${curDay}`][id]=parseFloat(v)||0; localStorage.setItem('slr_att_v3', JSON.stringify(att)); renderAll(); }
+function closeSheet(){ document.getElementById('sheet-bg').classList.remove('open'); }
+
+function renderSummary(){
+  const totals = {}; cfg.wt.forEach(t=>totals[t.var]=0);
+  Object.values(att).forEach(d=>Object.entries(d).forEach(([id,v])=>{
+    const t=cfg.wt.find(x=>x.id===id); if(t) totals[t.var]+=v;
+  }));
+  let salary = 0; try {
+    let f = cfg.formula.replace(/baseSalary/g, cfg.baseSalary).replace(/stdDays/g, cfg.stdDays);
+    cfg.wt.forEach(t=> f = f.replace(new RegExp(t.var,'g'), totals[t.var]));
+    salary = eval(f);
+  } catch(e){ salary=0; }
+  
+  const sumHtml = `<div class="total-box"><span>Dự kiến lương:</span><span class="total-val">${Math.round(salary).toLocaleString()}đ</span></div>`;
+  document.getElementById('summary-card').innerHTML = sumHtml;
+  document.getElementById('salary-detail').innerHTML = cfg.wt.map(t=>`<div>${t.name}: <b>${totals[t.var]}</b></div>`).join('') + `<hr style="margin:10px 0; border:none; border-top:1px solid #eee">` + sumHtml;
 }
 
-function addWT() {
-    const newId = 'w' + Date.now();
-    cfg.wt.push({ id: newId, name: 'Loại mới', var: 'newVar', color: '#888' });
-    saveCfg();
+function renderWTList(){
+  document.getElementById('base-salary').value=cfg.baseSalary; document.getElementById('std-days').value=cfg.stdDays; document.getElementById('formula').value=cfg.formula;
+  document.getElementById('wt-list').innerHTML = cfg.wt.map((t,i)=>`
+    <div style="display:flex; gap:5px; margin-bottom:5px">
+      <input style="flex:2" type="text" value="${t.name}" oninput="cfg.wt[${i}].name=this.value;saveCfg()">
+      <input style="flex:1" type="text" value="${t.var}" oninput="cfg.wt[${i}].var=this.value;saveCfg()">
+      <button onclick="cfg.wt.splice(${i},1);saveCfg()" style="color:red; background:none; border:none; padding:0 5px">✕</button>
+    </div>
+  `).join('');
 }
 
-function removeWT(i) {
-    cfg.wt.splice(i, 1);
-    saveCfg();
+function addWT(){ cfg.wt.push({id:'w'+Date.now(), name:'Mới', var:'bienMoi', ci:4}); saveCfg(); }
+function switchTab(id, el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
 }
-
-function showSec(id) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById('sec-' + id).classList.add('active');
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-}
-
+function changeMonth(d){ M+=d; if(M<0){M=11;Y--} if(M>11){M=0;Y++} renderAll(); }
 renderAll();
 </script>
 </body>
