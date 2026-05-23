@@ -173,7 +173,7 @@ input:focus,textarea:focus,select:focus{border-color:#888}
         <label style="font-size:12px;color:var(--muted);margin-top:10px;display:block;font-weight:600">Phụ cấp / ngày (allowancePerDay)</label>
         <input type="number" id="allowance-per-day" oninput="saveCfg()" style="border-color:var(--blue-bd)" placeholder="VD: 20000">
         <div style="font-size:11px;color:var(--muted);margin-top:4px;padding:6px 8px;background:var(--blue-bg);border-radius:6px;border:1px solid var(--blue-bd)">
-          Tự động tính: <code style="font-family:monospace;background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px">allowancePerDay &times; workDays</code> &nbsp;&#8594; dùng biến <code style="font-family:monospace;background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px">dailyAllowance</code> trong công thức
+          Dùng biến <code style="font-family:monospace;background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px">allowancePerDay</code> trực tiếp trong công thức tùy ý.
         </div>
       </div>
 
@@ -215,10 +215,10 @@ input:focus,textarea:focus,select:focus{border-color:#888}
         <div class="formula-guide">
           <b>Các biến có thể dùng:</b><br>
           <code>dailyWage</code> lương/ngày &nbsp;<code>stdDays</code> công chuẩn<br>
-          <code>dailyAllowance</code> phụ cấp (allowancePerDay×workDays) &nbsp;<code>totalDeductions</code> tổng khấu trừ tháng<br>
+          <code>allowancePerDay</code> mức phụ cấp/ngày (biến hệ thống) &nbsp;<code>totalDeductions</code> tổng khấu trừ tháng<br>
           Mã biến loại công tự tạo (VD: <code>workDays</code>, <code>otHours</code>...)<br><br>
           <b>Ví dụ công thức đầy đủ:</b><br>
-          <code>dailyWage * workDays + (dailyWage/8)*otHours*1.5 + dailyAllowance - totalDeductions</code><br><br>
+          <code>dailyWage * workDays + allowancePerDay * workDays + (dailyWage/8)*otHours*1.5 - totalDeductions</code><br><br>
           <b>Điều kiện thưởng:</b><br>
           <code>+ (workDays &gt; 20 ? 500000 : 0)</code>
         </div>
@@ -298,7 +298,7 @@ if(rawCfg){
 } else {
   cfg={
     dailyWage:460000,stdDays:26,allowancePerDay:20000,
-    formula:'dailyWage * workDays + (dailyWage / 8) * otHours * 1.5 + (dailyWage / 8) * sunHours * 2.0 + dailyAllowance - totalDeductions',
+    formula:'dailyWage * workDays + (dailyWage / 8) * otHours * 1.5 + (dailyWage / 8) * sunHours * 2.0 + allowancePerDay * workDays - totalDeductions',
     wt:[
       {id:'w1',name:'Đi làm thường',var:'workDays',ci:0,defH:1},
       {id:'w2',name:'Tăng ca',var:'otHours',ci:1,defH:4},
@@ -427,20 +427,17 @@ function calculateSalary(y,m){
     });
   });
   const {totalDeductions}=getAdjTotals(y,m);
-  const workDaysVal=totals[cfg.wt.find(w=>w.id==='w1')?.var||'workDays']||0;
-  const dailyAllowance=(cfg.allowancePerDay||0)*workDaysVal;
   let salary=0;
   try{
     let f=cfg.formula
       .replace(/\bdailyWage\b/g,cfg.dailyWage)
       .replace(/\bstdDays\b/g,cfg.stdDays)
-      .replace(/\bdailyAllowance\b/g,dailyAllowance)
-      .replace(/\btotalAllowances\b/g,dailyAllowance)
+      .replace(/\ballowancePerDay\b/g,cfg.allowancePerDay||0)
       .replace(/\btotalDeductions\b/g,totalDeductions);
     cfg.wt.forEach(t=>{f=f.replace(new RegExp('\\b'+t.var+'\\b','g'),totals[t.var]);});
     salary=eval(f);
   }catch(e){salary=0;}
-  return{salary,totals,dailyAllowance,totalDeductions};
+  return{salary,totals,totalDeductions};
 }
 
 // Wrapper cho tháng hiện tại (dùng bởi renderSummary)
@@ -448,17 +445,16 @@ function calculateCurrentSalary(){return calculateSalary(Y,M);}
 
 // ────── RENDER SUMMARY (TAB CHẤM CÔNG) ──────
 function renderSummary(){
-  const {salary,totals,dailyAllowance,totalDeductions}=calculateCurrentSalary();
+  const {salary,totals,totalDeductions}=calculateCurrentSalary();
   const metricsHtml=cfg.wt.map(t=>{
     const val=totals[t.var]||0;
     const p=PALETTES[t.ci]||PALETTES[0];
     const unit=(t.id==='w1'||t.id==='w5')?'ngày':'giờ';
     return`<div class="metric" style="background:${p.bg};border-color:${p.bd}"><div class="metric-label" style="color:${p.tx}">${t.name}</div><div class="metric-val" style="color:${p.tx}">${val} ${unit}</div></div>`;
   }).join('');
-  const adjHtml=(dailyAllowance>0||totalDeductions>0)?`
+  const adjHtml=totalDeductions>0?`
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px dashed var(--border);margin-top:4px">
-      ${dailyAllowance>0?`<span style="font-size:13px;color:var(--green)">+${fmt(dailyAllowance)} phụ cấp</span>`:''}
-      ${totalDeductions>0?`<span style="font-size:13px;color:var(--red)">-${fmt(totalDeductions)} khấu trừ</span>`:''}
+      <span style="font-size:13px;color:var(--red)">-${fmt(totalDeductions)} khấu trừ</span>
     </div>`:'';
   document.getElementById('summary-card').innerHTML=`
     <div class="card-title" style="margin-top:10px">Tổng kết tháng này</div>
@@ -469,7 +465,7 @@ function renderSummary(){
 
 // ────── RENDER SALARY BREAKDOWN (TAB LƯƠNG) ──────
 function renderSalaryBreakdown(){
-  const {salary,totals,dailyAllowance,totalDeductions}=calculateCurrentSalary();
+  const {salary,totals,totalDeductions}=calculateCurrentSalary();
   const adjData=getAdj(Y,M);
   let rows=cfg.wt.map(t=>`
     <div class="sal-row">
@@ -477,11 +473,6 @@ function renderSalaryBreakdown(){
       <span class="sal-val">${totals[t.var]} ${t.id==='w1'||t.id==='w5'?'công':'giờ'}</span>
     </div>`).join('');
 
-  // Phụ cấp hệ thống
-  if(dailyAllowance>0){
-    rows+=`<div class="sal-row" style="border-top:1.5px dashed var(--border);padding-top:12px;margin-top:4px"><span class="sal-lbl" style="font-weight:700;color:var(--green)">Phụ cấp</span><span></span></div>`;
-    rows+=`<div class="sal-row"><span class="sal-lbl" style="padding-left:8px">&#8627; Phụ cấp ngày công (${fmt(cfg.allowancePerDay||0)}/ngày)</span><span class="sal-val" style="color:var(--green)">+${fmt(dailyAllowance)}</span></div>`;
-  }
   // Khấu trừ theo tháng
   if(adjData.deducts.length){
     rows+=`<div class="sal-row" style="border-top:1.5px dashed var(--border);padding-top:12px;margin-top:4px"><span class="sal-lbl" style="font-weight:700;color:var(--red)">Khấu trừ</span><span></span></div>`;
