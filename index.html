@@ -16,6 +16,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
   --blue:#185FA5;--blue-bg:#E6F1FB;--blue-bd:#B5D4F4;
   --pink:#8B3A5E;--pink-bg:#FBEAF0;--pink-bd:#F4C0D1;
   --red:#A32D2D;--red-bg:#FCEBEB;--red-bd:#F7C1C1;
+  --purple:#5B21B6;--purple-bg:#F3E8FF;--purple-bd:#D8B4FE;
   --gray:#555;--gray-bg:#F1EFE8;--gray-bd:#D3D1C7;
   --surface:#fff;--page:#f5f5f0;--border:#e0ddd6;--text:#1a1a1a;--muted:#888;
   --radius:12px;--rsm:8px;
@@ -40,6 +41,8 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .card.set-wt{border-left:5px solid var(--amber);background:linear-gradient(to right,#ffffff,#fffdf8)}
 .card.set-formula{border-left:5px solid var(--green);background:linear-gradient(to right,#ffffff,#fbfdf9)}
 .card.set-backup{border-left:5px solid var(--pink);background:linear-gradient(to right,#ffffff,#fffbfe)}
+.card.set-assistant{border-left:5px solid var(--purple);background:linear-gradient(to right,#ffffff,#faf5ff)}
+
 .legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .leg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
 .leg-dot{width:9px;height:9px;border-radius:3px;border:1px solid}
@@ -103,6 +106,7 @@ input:focus,textarea:focus,select:focus{border-color:#888}
 .btn-pink{background:linear-gradient(135deg,#8B3A5E,#ec4899)}
 .btn-orange{background:linear-gradient(135deg,#8a5c00,#f59e0b)}
 .btn-teal{background:linear-gradient(135deg,#0f766e,#14b8a6)}
+.btn-purple{background:linear-gradient(135deg,#5B21B6,#8B5CF6)}
 .toast-container{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.15);display:none;align-items:center;gap:8px}
 
 .adj-month-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -129,6 +133,24 @@ input:focus,textarea:focus,select:focus{border-color:#888}
 .salary-tabs{display:flex;background:var(--gray-bg);padding:4px;border-radius:10px;margin-bottom:12px}
 .sub-tab{flex:1;border:none;background:transparent;padding:8px;border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s ease}
 .sub-tab.active{background:var(--surface);color:var(--text);font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
+
+/* ── ASSISTANT/CHAT UI STYLES ── */
+.chat-area {display:flex;flex-direction:column;height:350px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);overflow:hidden;margin-bottom:12px}
+.chat-messages {flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+.bubble {max-width:85%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5;word-wrap:break-word}
+.bubble.user {align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:2px}
+.bubble.ai {align-self:flex-start;background:var(--gray-bg);color:var(--text);border-bottom-left-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+.chat-input-row {display:flex;gap:6px;padding:8px;border-top:1px solid var(--border);background:var(--surface)}
+.chat-input-row input {flex:1;margin-top:0;padding:8px 12px;border-radius:20px;font-size:13px;border:1px solid var(--border)}
+.chat-send-btn {background:var(--purple);color:#fff;border:none;padding:0 16px;border-radius:20px;font-weight:700;cursor:pointer;font-size:13px}
+.suggest-grid {display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.suggest-chip {padding:6px 12px;border:1px solid var(--border);border-radius:15px;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--gray);transition:all 0.15s}
+.suggest-chip:active {background:var(--purple-bg);border-color:var(--purple-bd);color:var(--purple)}
+.ai-loader {display:inline-flex;gap:3px;align-items:center}
+.ai-dot {width:6px;height:6px;background:var(--muted);border-radius:50%;animation:bounce 1.4s infinite ease-in-out both}
+.ai-dot:nth-child(1) {animation-delay:-0.32s}
+.ai-dot:nth-child(2) {animation-delay:-0.16s}
+@keyframes bounce {0%,80%,100% {transform:scale(0)} 40% {transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -164,6 +186,52 @@ input:focus,textarea:focus,select:focus{border-color:#888}
       </div>
       
       <div class="card" id="salary-breakdown"></div>
+    </div>
+
+    <!-- TRỢ LÝ AI -->
+    <div class="section" id="sec-assistant">
+      <div class="page-header"><div class="page-title">Trợ lý AI Lương Thưởng</div></div>
+      
+      <!-- Phân tích chuỗi ngày nghỉ dài ngày -->
+      <div class="card set-assistant" style="margin-bottom:12px">
+        <div class="card-title" style="color:var(--purple)">💡 Phân tích chuỗi ngày muốn nghỉ phép</div>
+        
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="flex:1">
+              <span style="font-size:11px;color:var(--muted);font-weight:600">Từ ngày:</span>
+              <input type="date" id="ai-start-date" style="margin-top:2px;padding:8px" onchange="calculateSelectedDaysCount()">
+            </div>
+            <div style="flex:1">
+              <span style="font-size:11px;color:var(--muted);font-weight:600">Đến ngày:</span>
+              <input type="date" id="ai-end-date" style="margin-top:2px;padding:8px" onchange="calculateSelectedDaysCount()">
+            </div>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+            <span id="selected-days-badge" style="font-size:11px;font-weight:700;color:var(--purple);background:var(--purple-bg);padding:4px 10px;border-radius:12px;border:1px solid var(--purple-bd)">Tổng cộng: 1 ngày nghỉ</span>
+            <button class="gradient-btn btn-purple" onclick="analyzeDayOffRange()" style="width:auto;margin-top:0;font-size:12px;padding:8px 16px">Phân tích ngay</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick prompts -->
+      <div class="suggest-grid">
+        <div class="suggest-chip" onclick="askPreset('Đánh giá tổng quan hiệu suất chấm công của tôi trong tháng này và dự kiến lương nhận.')">🔍 Đánh giá tháng này</div>
+        <div class="suggest-chip" onclick="askPreset('Làm thế nào để tôi đạt mục tiêu thu nhập mong muốn tối ưu nhất dựa trên công thức lương hiện có?')">📈 Tối ưu lương mục tiêu</div>
+        <div class="suggest-chip" onclick="askPreset('Nếu tôi cần nghỉ đột xuất 1 ngày trong tuần, tôi nên chọn thứ mấy để giảm thiểu tối đa tổn thất thu nhập?')">🗓️ Chọn ngày nghỉ tối ưu</div>
+      </div>
+
+      <!-- Khung chat -->
+      <div class="chat-area">
+        <div class="chat-messages" id="chat-messages">
+          <div class="bubble ai">Xin chào! Tôi là Trợ lý AI Lương Thưởng. Bạn có thể thiết lập khoảng ngày muốn nghỉ phép ở phía trên để tôi phân tích tác động tài chính, hoặc đặt bất cứ câu hỏi nào cho tôi ở khung trò chuyện bên dưới nhé!</div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" placeholder="Gửi câu hỏi cho trợ lý lương..." onkeydown="if(event.key==='Enter') sendChat()">
+          <button class="chat-send-btn" onclick="sendChat()">Gửi</button>
+        </div>
+      </div>
     </div>
 
     <!-- LỊCH SỬ -->
@@ -260,12 +328,16 @@ input:focus,textarea:focus,select:focus{border-color:#888}
 
   </div>
 
+  <!-- NAVIGATION TABS -->
   <div class="tab-bar">
     <button class="tab active" onclick="switchTab('cong',this)">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>Chấm công
     </button>
     <button class="tab" onclick="switchTab('luong',this)">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9h1a2 2 0 1 1 0 4H9v2h5"/><line x1="11" y1="9" x2="11" y2="7"/><line x1="11" y1="17" x2="11" y2="15"/></svg>Lương
+    </button>
+    <button class="tab" onclick="switchTab('assistant',this)">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Trợ lí
     </button>
     <button class="tab" onclick="switchTab('history',this)">
       <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Lịch sử
@@ -290,7 +362,7 @@ input:focus,textarea:focus,select:focus{border-color:#888}
 <script>
 let Y=new Date().getFullYear(), M=new Date().getMonth(), curDay=null;
 let AY=new Date().getFullYear(), AM=new Date().getMonth();
-let activeSubTab = 'summary'; // 'summary' | 'details'
+let activeSubTab = 'summary';
 
 const WDAYS=['CN','T2','T3','T4','T5','T6','T7'];
 const PALETTES=[
@@ -472,6 +544,29 @@ function getAdjTotals(y,m){
   return{totalAllowances, totalDeductions};
 }
 
+function calculateComponentWage(wtVar, totals) {
+  let parsedFormula = cfg.formula;
+  if(!parsedFormula.includes('totalAllowances')) parsedFormula += ' + totalAllowances';
+  if(!parsedFormula.includes('totalDeductions')) parsedFormula += ' - totalDeductions';
+
+  try {
+    let f = parsedFormula
+      .replace(/\bdailyWage\b/g, cfg.dailyWage)
+      .replace(/\bstdDays\b/g, cfg.stdDays)
+      .replace(/\ballowancePerDay\b/g, cfg.allowancePerDay || 0)
+      .replace(/\btotalDeductions\b/g, 0)
+      .replace(/\btotalAllowances\b/g, 0);
+      
+    cfg.wt.forEach(t => {
+      const val = (t.var === wtVar) ? (totals[t.var] || 0) : 0;
+      f = f.replace(new RegExp('\\b' + t.var + '\\b', 'g'), val);
+    });
+    return eval(f);
+  } catch(e) {
+    return 0;
+  }
+}
+
 function saveCfg(){
   cfg.dailyWage=parseFloat(document.getElementById('daily-wage').value)||0;
   cfg.stdDays=parseFloat(document.getElementById('std-days').value)||1;
@@ -496,7 +591,6 @@ function calculateSalary(y,m){
   const {totalAllowances, totalDeductions}=getAdjTotals(y,m);
   let salary=0;
   
-  // Tự động tương thích ngược công thức nếu thiếu các biến cộng thêm/khấu trừ mới
   let parsedFormula = cfg.formula;
   if(!parsedFormula.includes('totalAllowances')) parsedFormula += ' + totalAllowances';
   if(!parsedFormula.includes('totalDeductions')) parsedFormula += ' - totalDeductions';
@@ -558,14 +652,21 @@ function renderSalaryBreakdown(){
   const adjData=getAdj(Y,M);
 
   if (activeSubTab === 'summary') {
-    // ── GIAO DIỆN PHIẾU LƯƠNG TỔNG QUAN ──
-    let rows=cfg.wt.map(t=>`
-      <div class="sal-row">
-        <span class="sal-lbl">${t.name}</span>
-        <span class="sal-val">${totals[t.var]} ${t.id==='w1'||t.id==='w5'?'công':'giờ'}</span>
-      </div>`).join('');
+    let rows=cfg.wt.map(t=>{
+      const compWage = calculateComponentWage(t.var, totals);
+      return `
+      <div class="sal-row" style="display: flex; flex-direction: column; align-items: stretch; padding: 12px 0; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <span class="sal-lbl" style="font-weight: 600; color: var(--text); font-size: 14px;">${t.name}</span>
+          <span class="sal-val" style="font-weight: 600; font-size: 14px; color: var(--gray);">${totals[t.var]} ${t.id==='w1'||t.id==='w5'?'công':'giờ'}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; width: 100%;">
+          <span style="color: var(--muted); font-size: 11px; font-weight: 500;">Thành tiền:</span>
+          <span style="color: var(--green); font-weight: 700; font-size: 13px;">+${fmt(Math.round(compWage))}</span>
+        </div>
+      </div>`;
+    }).join('');
 
-    // Danh sách khoản cộng thêm
     if(adjData.allows.length){
       rows+=`<div class="sal-row" style="border-top:1.5px dashed var(--border);padding-top:12px;margin-top:4px"><span class="sal-lbl" style="font-weight:700;color:var(--green)">Cộng thêm</span><span></span></div>`;
       adjData.allows.forEach(d=>{
@@ -573,7 +674,6 @@ function renderSalaryBreakdown(){
       });
     }
 
-    // Danh sách khoản khấu trừ
     if(adjData.deducts.length){
       rows+=`<div class="sal-row" style="border-top:1.5px dashed var(--border);padding-top:12px;margin-top:4px"><span class="sal-lbl" style="font-weight:700;color:var(--red)">Khấu trừ</span><span></span></div>`;
       adjData.deducts.forEach(d=>{
@@ -587,9 +687,6 @@ function renderSalaryBreakdown(){
       <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:14px"></div>
       <div class="total-box"><span class="total-lbl">Dự kiến thực nhận:</span><span class="total-val">${fmt(Math.round(salary))}</span></div>`;
   } else {
-    // ── GIAO DIỆN LƯƠNG CHI TIẾT NHỎ (Ledger / Step-by-Step) ──
-    
-    // Tạo chuỗi diễn giải toán học thế số
     let parsedFormula = cfg.formula;
     if(!parsedFormula.includes('totalAllowances')) parsedFormula += ' + totalAllowances';
     if(!parsedFormula.includes('totalDeductions')) parsedFormula += ' - totalDeductions';
@@ -607,7 +704,6 @@ function renderSalaryBreakdown(){
     let detailsHtml = `
       <div class="card-title" style="margin-bottom:15px">Chi tiết tính toán tháng ${M+1}/${Y}</div>
       
-      <!-- Nhóm 1: Hệ số lương cố định -->
       <div style="margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
         <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px;text-transform:uppercase">1. Hệ số quy chiếu</div>
         <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
@@ -628,7 +724,6 @@ function renderSalaryBreakdown(){
         </div>
       </div>
 
-      <!-- Nhóm 2: Hệ số chấm công thực tế -->
       <div style="margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
         <div style="font-size:11px;font-weight:700;color:var(--amber);margin-bottom:6px;text-transform:uppercase">2. Thống kê chấm công</div>
         ${cfg.wt.map(t => {
@@ -642,7 +737,6 @@ function renderSalaryBreakdown(){
         }).join('')}
       </div>
 
-      <!-- Nhóm 3: Biến động phát sinh trong tháng -->
       <div style="margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
         <div style="font-size:11px;font-weight:700;color:#0f766e;margin-bottom:6px;text-transform:uppercase">3. Phát sinh tháng ${M+1}/${Y}</div>
         <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
@@ -655,7 +749,6 @@ function renderSalaryBreakdown(){
         </div>
       </div>
 
-      <!-- Nhóm 4: Diễn giải chi tiết công thức thế số toán học -->
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--pink);margin-bottom:6px;text-transform:uppercase">4. Diễn giải phép tính toán học</div>
         <div style="background:var(--page);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:monospace;font-size:11px;line-height:1.5;color:var(--text);overflow-x:auto">
@@ -696,6 +789,9 @@ function switchTab(id,btn){
     document.getElementById('std-days').value=cfg.stdDays;
     document.getElementById('allowance-per-day').value=cfg.allowancePerDay||0;
     document.getElementById('formula').value=cfg.formula;
+  }
+  if(id==='assistant') {
+    initAIDatePicker();
   }
 }
 
@@ -844,6 +940,225 @@ function renderHistory(){
   }
 }
 
+function initAIDatePicker() {
+  const startDate = document.getElementById('ai-start-date');
+  const endDate = document.getElementById('ai-end-date');
+  if (startDate && !startDate.value) {
+    const defaultDate = `${Y}-${String(M + 1).padStart(2, '0')}-15`;
+    startDate.value = defaultDate;
+    endDate.value = defaultDate;
+  }
+  calculateSelectedDaysCount();
+}
+
+function calculateSelectedDaysCount() {
+  const startVal = document.getElementById('ai-start-date').value;
+  const endVal = document.getElementById('ai-end-date').value;
+  const badge = document.getElementById('selected-days-badge');
+  if (!startVal || !endVal) return;
+  
+  const start = new Date(startVal);
+  const end = new Date(endVal);
+  
+  if (end < start) {
+    badge.innerText = "Ngày kết thúc phải sau ngày bắt đầu!";
+    badge.style.color = "var(--red)";
+    badge.style.borderColor = "var(--red-bd)";
+    badge.style.background = "var(--red-bg)";
+    return;
+  }
+  
+  const diffTime = Math.abs(end - start);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  badge.innerText = `Tổng cộng: ${diffDays} ngày nghỉ`;
+  badge.style.color = "var(--purple)";
+  badge.style.borderColor = "var(--purple-bd)";
+  badge.style.background = "var(--purple-bg)";
+}
+
+function parseMarkdown(text) {
+  if (!text) return '';
+  // Chuyển đổi ký tự HTML đặc biệt để tránh lỗi render cấu trúc
+  let html = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Xử lý các tiêu đề Markdown (###, ##, #) tại đầu dòng
+  html = html.replace(/^###[ \t]+(.*)$/gim, '<h3 style="font-weight:700; font-size:14px; color:var(--purple); margin:12px 0 6px 0; display:block;">$1</h3>');
+  html = html.replace(/^##[ \t]+(.*)$/gim, '<h2 style="font-weight:700; font-size:15px; color:var(--purple); margin:14px 0 8px 0; display:block;">$1</h2>');
+  html = html.replace(/^#[ \t]+(.*)$/gim, '<h1 style="font-weight:700; font-size:17px; color:var(--purple); margin:16px 0 10px 0; display:block;">$1</h1>');
+
+  // Chữ in đậm và in nghiêng
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Khối mã Code inline
+  html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.06);padding:2px 4px;border-radius:4px;font-family:monospace">$1</code>');
+  
+  // Danh sách không thứ tự (- hoặc *)
+  html = html.replace(/^\s*[-*]\s+(.*)$/gim, '<li style="margin-left:18px;list-style-type:disc;margin-top:4px;margin-bottom:4px">$1</li>');
+  
+  // Danh sách có thứ tự (1. 2. 3...)
+  html = html.replace(/^\s*(\d+)\.\s+(.*)$/gim, '<li style="margin-left:18px;list-style-type:decimal;margin-top:4px;margin-bottom:4px">$2</li>');
+  
+  // Xuống dòng thực tế
+  html = html.replace(/\n/g, '<br>');
+  
+  // Loại bỏ các thẻ xuống dòng thừa không cần thiết ngay sau các thẻ khối tiêu đề hoặc danh sách để giao diện đẹp hơn
+  html = html.replace(/(<\/h[1-3]>)\s*<br>/gi, '$1');
+  html = html.replace(/(<\/li>)\s*<br>/gi, '$1');
+  
+  return html;
+}
+
+function appendChatMessage(sender, content, isLoading = false) {
+  const container = document.getElementById('chat-messages');
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${sender}`;
+  
+  const id = 'msg_' + Date.now() + Math.random().toString(36).substr(2, 5);
+  bubble.id = id;
+
+  if (isLoading) {
+    bubble.innerHTML = `
+      <div class="ai-loader">
+        <div class="ai-dot"></div>
+        <div class="ai-dot"></div>
+        <div class="ai-dot"></div>
+      </div>`;
+  } else {
+    bubble.innerHTML = parseMarkdown(content);
+  }
+
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+
+function updateChatMessage(id, content) {
+  const bubble = document.getElementById(id);
+  if (bubble) {
+    bubble.innerHTML = parseMarkdown(content);
+    const container = document.getElementById('chat-messages');
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+async function askGeminiAPI(query) {
+  const loadingId = appendChatMessage('ai', '', true);
+
+  // Thu thập toàn bộ ngữ cảnh bảng lương của người dùng để nạp cho AI
+  const salaryData = calculateCurrentSalary();
+  const contextPrompt = `
+Bạn là một "Trợ lý Lương thưởng AI" (AI Payroll Companion) thông minh và thân thiện của người dùng.
+Nhiệm vụ của bạn là giải đáp, phân tích và đưa ra giải pháp tối ưu hóa thu nhập, tính toán ngày nghỉ phép dựa trên thông tin bảng lương của họ.
+
+Dưới đây là DỮ LIỆU BẢNG LƯƠNG HIỆN TẠI của người dùng:
+- Tháng hiện hành: Tháng ${M+1} năm ${Y}
+- Lương 1 ngày (dailyWage): ${fmt(cfg.dailyWage)}
+- Lương tính theo giờ tạm tính: ${fmt(cfg.dailyWage/8)} / giờ
+- Công chuẩn định mức của tháng (stdDays): ${cfg.stdDays} ngày
+- Mức phụ cấp hệ thống mỗi ngày công (allowancePerDay): ${fmt(cfg.allowancePerDay)}
+- Công thức tính lương đang cài đặt: ${cfg.formula}
+- Thống kê chấm công thực tế đã đạt được đến hiện tại:
+  ${JSON.stringify(salaryData.totals)}
+- Tổng các khoản cộng thêm tháng này (totalAllowances): ${fmt(salaryData.totalAllowances)}
+- Tổng các khoản khấu trừ tháng này (totalDeductions): ${fmt(salaryData.totalDeductions)}
+- Ước tính Thực Nhận Dự Kiến: ${fmt(salaryData.salary)}
+
+HƯỚNG DẪN TRẢ LỜI:
+1. Luôn phản hồi bằng tiếng Việt lịch sự, dễ hiểu, giàu năng lượng tích cực và cực kỳ rõ ràng.
+2. Phân tích chi tiết bằng các phép tính cụ thể dựa trên số liệu bảng lương ở trên.
+3. Sử dụng định dạng Markdown phong phú (In đậm những con số quan trọng, sử dụng danh sách gạch đầu dòng rõ nét).
+4. Khi người dùng hỏi về việc nghỉ một chuỗi ngày liên tiếp, hãy bóc tách chính xác tổn hại thu nhập: (số ngày công làm việc thường bị mất * dailyWage) + (số ngày công bị hụt * allowancePerDay) + tổn hại tiềm tàng lên lương tổng. Gợi ý cụ thể cách họ bù lại tổn thất tài chính (ví dụ: làm tăng ca bao nhiêu giờ, hoặc làm bù thế nào).
+`;
+
+  try {
+    const apiKey = ""; // Canvas tự động điền key ở runtime
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+    const payload = {
+      contents: [{ parts: [{ text: query }] }],
+      systemInstruction: {
+        parts: [{ text: contextPrompt }]
+      }
+    };
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+    const replyText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (replyText) {
+      updateChatMessage(loadingId, replyText);
+    } else {
+      updateChatMessage(loadingId, "Tôi chưa xử lý được câu trả lời này. Hãy thử hỏi lại hoặc đổi câu hỏi khác nhé!");
+    }
+  } catch (error) {
+    console.error(error);
+    updateChatMessage(loadingId, "⚠️ Đã xảy ra lỗi kết nối với máy chủ AI. Vui lòng kiểm tra lại kết nối mạng của bạn.");
+  }
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  appendChatMessage('user', text);
+  input.value = '';
+  askGeminiAPI(text);
+}
+
+function askPreset(promptText) {
+  appendChatMessage('user', promptText);
+  askGeminiAPI(promptText);
+}
+
+function analyzeDayOffRange() {
+  const startVal = document.getElementById('ai-start-date').value;
+  const endVal = document.getElementById('ai-end-date').value;
+  if (!startVal || !endVal) {
+    showToast("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
+    return;
+  }
+  const start = new Date(startVal);
+  const end = new Date(endVal);
+  
+  if (end < start) {
+    showToast("Khoảng ngày nghỉ không hợp lệ!");
+    return;
+  }
+  
+  const diffTime = Math.abs(end - start);
+  const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  
+  let workDaysCount = 0;
+  let sundayCount = 0;
+  let current = new Date(start);
+  
+  while (current <= end) {
+    const dayOfWeek = current.getDay();
+    if (dayOfWeek === 0) {
+      sundayCount++;
+    } else {
+      workDaysCount++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+
+  const promptText = `Tôi muốn xin nghỉ liên tục từ ngày ${startVal} đến ngày ${endVal} (Tổng cộng ${totalDays} ngày nghỉ, gồm ${workDaysCount} ngày làm việc thường và ${sundayCount} ngày Chủ nhật).
+Dựa trên mức lương ngày ${fmt(cfg.dailyWage)} và phụ cấp ngày ${fmt(cfg.allowancePerDay)} của tôi, hãy tính toán xem đợt nghỉ này sẽ khiến thu nhập tháng này bị hụt chính xác bao nhiêu tiền?
+Hãy đưa ra một phân tích cụ thể, đồng thời đề xuất cho tôi kế hoạch đi làm bù hoặc đăng ký tăng ca để bù lấp khoảng trống tài chính này một cách tối ưu nhất nhé!`;
+
+  askPreset(promptText);
+}
+
 function exportData(){
   const data={cfg,att,adj};
   const str=JSON.stringify(data,null,2);
@@ -880,6 +1195,7 @@ window.onload=function(){
   renderAll();
   renderWTList();
   renderAdjPanel();
+  initAIDatePicker();
 };
 </script>
 </body>
